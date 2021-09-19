@@ -1,65 +1,92 @@
-import requests
-import random
-import sys
+#!/usr/bin/env python3
+from requests import get
+from random import choice
 
-tld_ = str(None)
-i = int(0)
-uri = str(None)
-usedURI = []
-domainsFound = []
-HELP_ = False
+#Defines
+activeDomains = []
+scannedDomains = []
+selectFrom = '1234567890qwertyuiopasdfghjklzxcvbnm'
+httpMethod = 0
 
-uriGen = 'abcdefghijklmnopqrstuvwxyz1234567890'
-
-if len(sys.argv) > 1:
-    if sys.argv[1] == '-h' or sys.argv[1] == '--help':
-        HELP_ = True
-        print('\n#py domain-miner.py [URI Length] [Top Level Domain]\n')
-
-if len(sys.argv) > 1 and HELP_ == False:
-    uriLen = sys.argv[1]
-else:
-    uriLen = int(input('Length of URI: '))
-
-if len(sys.argv) > 2 and HELP_ == False:
-    tld_ = sys.argv[2]
-else:
-    tld_ = str(input('Top Level Domain: '))
-
-try:
-    timeout_ = int(input("Reply timeout (s): "))
-except KeyboardInterrupt:
-    print("\n\nTerminating script\n")
-    exit()
-except:
-    timeout_ = 1
-
-possibleDomains = 36**int(uriLen)
-
-print(f"\nScanning for {possibleDomains:,} domains\n")
-
-while possibleDomains > len(usedURI):
-    try:
-        uri = 'https://'
-        while i < int(uriLen):
-            uri += random.choice(uriGen)
-            i += 1
-        uri += tld_
-        if uri in usedURI:
-            pass
-        else:
-            x = requests.get(uri, headers={'user-agent': 'domain-miner'}, timeout=timeout_)
-            print(f'Domain {uri} returned staus code {x.status_code}')
-            usedURI.append(uri)
-            domainsFound.append(uri)
-    except KeyboardInterrupt:
-        print("\nTerminating script\n")
-        print(f"{len(domainsFound):,}/{len(usedURI):,} Domains Found: {domainsFound}\n")
+class Main:
+  def scanHTTP(uri, method, _timeout):
+    if method != 1 and method != 2:
+      print('Method not accepted!')
+      exit()
+    if method == 1:
+      try:
+        httpGet = get(uri, timeout=_timeout, headers={'user-agent': 'domain-miner'})
+      except KeyboardInterrupt:
+        print('\nTerminating script...\n')
+        try: f = int(len(activeDomains) / len(scannedDomains) * 1000) / 10
+        except: f = 0
+        print(f'\nScanned {len(activeDomains)} / {len(scannedDomains)} ({f}%)\n')
+        print(f'\n{activeDomains}\n')
         exit()
-    except Exception as e:
-        print(f'{uri} Not Found')
-        usedURI.append(uri)
-    uri = None
-    i = 0
+      except:
+        return False
+      if httpGet.text != '':
+        print(f'{uri} => {httpGet.url} - {httpGet}')
+        return True
+      if httpGet.text == '':
+        return False
+    if method == 2:
+      try:
+        httpGet = get(uri, timeout=_timeout, headers={'user-agent': 'domain-miner'})
+        print(f'{uri} => {httpGet.url} - {httpGet}')
+        return True
+      except KeyboardInterrupt:
+        print('\nTerminating script...\n')
+        try: f = int(len(activeDomains) / len(scannedDomains) * 1000) / 10
+        except: f = 0
+        print(f'\nScanned {len(activeDomains)} / {len(scannedDomains)} ({f}%)\n')
+        print(f'\n{activeDomains}\n')
+        exit()
+      except:
+        return False
 
-print(f"Done!\n\n{len(domainsFound):,}/{possibleDomains:,} Domains Found: {domainsFound}")
+  def genURI(n, method, topld):
+    current = ''
+    if method != 1 and method != 2:
+      print('Method not accepted!')
+      exit()
+    if method == 1: current = 'http://'
+    if method == 2: current = 'https://'
+    for i in range(n):
+      current += choice(selectFrom)
+    return current + topld
+
+if __name__ == '__main__':
+  #Variables
+  httpMethod = int(input('1) HTTP - Checks for empty response\n2) HTTPS\n'))
+  uriLength = int(input('URI Length: '))
+  tld = input('Top level domain: ')
+  _timeout = float(input('Timeout (s): '))
+  possibleDomains = 36**uriLength
+  print(f'Scaning for {possibleDomains:,} domains')
+  #start
+  while True:
+    if len(scannedDomains) == possibleDomains:
+      try: f = int(len(activeDomains) / len(scannedDomains) * 1000) / 10
+      except: f = 0
+      print(f'\nDone! Scanned {len(activeDomains)} / {len(scannedDomains)} ({f}%)\n')
+      exit()
+    try:
+      uri = Main.genURI(uriLength, httpMethod, tld)
+      while uri in scannedDomains:
+        uri = Main.genURI(uriLength, httpMethod, tld)
+      r = Main.scanHTTP(uri, httpMethod, _timeout)
+      scannedDomains.append(uri)
+      if r == True:
+        activeDomains.append(uri)
+      if r == False:
+        print(f'{uri} - Not Found!')
+    except KeyboardInterrupt:
+      print('\nTerminating script...\n')
+      try: f = int(len(activeDomains) / len(scannedDomains) * 1000) / 10
+      except: f = 0
+      print(f'\nScanned {len(activeDomains)} / {len(scannedDomains)} ({f}%)\n')
+      print(f'\n{activeDomains}\n')
+      exit()
+    except Exception as e:
+      pass
