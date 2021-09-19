@@ -1,5 +1,5 @@
 # domain-miner
 Mine for domains
-#Usage
+# Usage
 chmod +x domain-miner.py
 ./domain-miner.py
