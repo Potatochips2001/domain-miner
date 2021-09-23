@@ -1,15 +1,23 @@
 #!/usr/bin/env python3
 from requests import get
 from random import choice
+from sys import argv
 
 #Defines
 activeDomains = []
 scannedDomains = []
 selectFrom = '1234567890qwertyuiopasdfghjklzxcvbnm'
 httpMethod = 0
+_arg = ''
+
+try:
+  if argv[1] == '--silent':
+    _arg = 'silent'
+except:
+  pass
 
 class Main:
-  def scanHTTP(uri, method, _timeout):
+  def scanHTTP(uri: str, method, _timeout):
     if method != 1 and method != 2:
       print('Method not accepted!')
       exit()
@@ -45,6 +53,23 @@ class Main:
       except:
         return False
 
+  def silentScanHTTP(uri: str, method, _timeout):
+    if method != 1 and method != 2:
+      print('Method not accepted!')
+      exit()
+    if method == 1:
+      try:
+        httpGet = get(uri, timeout=_timeout, headers={'user-agent': 'domain-miner'})
+      except KeyboardInterrupt:
+        print('\nTerminating script...\n')
+        try: f = int(len(activeDomains) / len(scannedDomains) * 1000) / 10
+        except: f = 0
+        print(f'\nScanned {len(activeDomains)} / {len(scannedDomains)} ({f}%)\n')
+        print(f'\n{activeDomains}\n')
+        exit()
+      except:
+        return False
+
   def genURI(n, method, topld):
     current = ''
     if method != 1 and method != 2:
@@ -65,7 +90,7 @@ if __name__ == '__main__':
   possibleDomains = 36**uriLength
   print(f'Scaning for {possibleDomains:,} domains')
   #start
-  while True:
+  while _arg != 'silent':
     if len(scannedDomains) == possibleDomains:
       try: f = int(len(activeDomains) / len(scannedDomains) * 1000) / 10
       except: f = 0
@@ -90,3 +115,20 @@ if __name__ == '__main__':
       exit()
     except Exception as e:
       pass
+  while _arg == 'silent':
+    if len(scannedDomains) == possibleDomains:
+      try: f = int(len(activeDomains) / len(scannedDomains) * 1000) / 10
+      except: f = 0
+      print(f'\nDone! Scanned {len(activeDomains)} / {len(scannedDomains)} ({f}%)\n')
+      exit()
+    try:
+      uri = Main.genURI(uriLength, httpMethod, tld)
+      while uri in scannedDomains:
+        uri = Main.genURI(uriLength, httpMethod, _timeout)
+      r = Main.silentScanHTTP(uri, httpMethod, _timeout)
+      scannedDomains.append(uri)
+      if r == True:
+        activeDomains.append(uri)
+    except Exception as e:
+      print(e)
+    print(f'\rScanned {len(activeDomains)} / {len(scannedDomains)} domains', end='')
