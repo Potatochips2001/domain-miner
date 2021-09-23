@@ -136,15 +136,16 @@ if __name__ == '__main__':
       try: f = int(len(activeDomains) / len(scannedDomains) * 1000) / 10
       except: f = 0
       print(f'\nDone! Scanned {len(activeDomains)} / {len(scannedDomains)} ({f}%)\n')
+      print(f'\n{activeDomains}\n')
       exit()
     try:
       uri = Main.genURI(uriLength, httpMethod, tld)
       while uri in scannedDomains:
-        uri = Main.genURI(uriLength, httpMethod, _timeout)
+        uri = Main.genURI(uriLength, httpMethod, tld)
       r = Main.silentScanHTTP(uri, httpMethod, _timeout)
       scannedDomains.append(uri)
       if r == True:
         activeDomains.append(uri)
     except Exception as e:
-      print(e)
+      pass
     print(f'\rScanned {len(activeDomains)} / {len(scannedDomains)} domains', end='')
