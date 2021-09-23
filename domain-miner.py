@@ -69,6 +69,22 @@ class Main:
         exit()
       except:
         return False
+    if method == 2:
+      try:
+        httpGet = get(uri, timeout=_timeout, headers={'user-agent': 'domain-miner'})
+        if httpGet.text != '':
+          return True
+        else:
+          return False
+      except KeyboardInterrupt:
+        print(f'\nTerminating script...\n')
+        try: f = int(len(activeDomains) / len(scannedDomains))
+        except: f = 0
+        print(f'\nScanned {len(activeDomains)} / {len(scannedDomains)} ({f}%)\n')
+        print(f'\n{activeDomains}\n')
+        exit()
+      except:
+        return False
 
   def genURI(n, method, topld):
     current = ''
