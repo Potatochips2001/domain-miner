@@ -104,7 +104,7 @@ if __name__ == '__main__':
   tld = input('Top level domain: ')
   _timeout = float(input('Timeout (s): '))
   possibleDomains = 36**uriLength
-  print(f'Scaning for {possibleDomains:,} domains')
+  print(f'\nScaning for {possibleDomains:,} domains\n')
   #start
   while _arg != 'silent':
     if len(scannedDomains) == possibleDomains:
